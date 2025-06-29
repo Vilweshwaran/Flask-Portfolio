@@ -44,20 +44,25 @@ def signup():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error_message = None
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        user = User.query.filter_by(username=username, password=password).first()
-        
-        if user:
-            session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
-        else:
-            error_message = 'Invalid username or password.'
-    
-    return render_template('login.html', error_message=error_message)
 
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if not username or not password:
+            error_message = "Please provide both username and password."
+        else:
+            # Find user by username
+            user = User.query.filter_by(username=username).first()
+
+            # Validate password (plaintext check for now; not recommended)
+            if user and user.password == password:
+                session['user_id'] = user.id
+                return redirect(url_for('dashboard'))
+            else:
+                error_message = "Invalid username or password."
+
+    return render_template('login.html', error_message=error_message)
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
